@@ -26,6 +26,7 @@
 con sublime y regExp en pocos pasos se hace
 
 ==== PASO 1 ====================== separamos las actividades y ponemos el enlace al principio =============================
+
 <li.*?(activity-id-[0-9]{1,3}).*?>.*?(<a href.*?>)(.*?)<\/a><\/li>
 \n<tr $1>\n\t<td>$2$1</a></td>$3\n</tr>\n
 
@@ -49,6 +50,7 @@ lo convierte en
 <tr activity-id-2>
 	<td><a href="https://www.sports-tracker.com/workout/analmar/6037d76250cc5169d5b91b64" target="_blank">activity-id-2</a></td><span class="activity-icon" activity-icon="2"><svg><use xlink:href="#activity-icon-2"></use></svg></span> <span class="description" title="">&nbsp;</span> <span class="date">Feb 25, 2021</span> <span class="duration">00:58:08</span> <span class="distance">20.10 km</span> <span class="avg-speed">20.7 km/h</span> <span class="avg-pace">2:53/km</span> <span class="hr">135 bpm&nbsp;</span> <span class="energy">779 kcal</span> <span class="cadence">0 rpm</span>
 </tr>
+
 ==========================   cambiamos los <span> por <td>==================================================
 
 <span(.*?)>(.*?)<\/span>
