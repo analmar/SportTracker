@@ -14,14 +14,19 @@ p2 = ""
 for i in range(0, len(m)):
     g = m[i]
     p1 = "\n<tr " + g[0] + ">\n\t" + "<td>" + g[1] + g[0] + "</a></td>" + "\n\t" + g[2] + "\n</tr>\n"
-    p = "(.*?)<span(. *?)>(.* ?)<\/span>(.*?)"
-    m = re.findall(p, p1)
-    for j in range(0, len(m)):
-        g = m[j]
-        p2 = g[0] + "\n\t<td" + g[1] + ">" + g[2] + "</td>" + g[3]
+    p = "(.*?)<span(.*?)>(.* ?)<\/span>(.*?)"
+    #print(p1)
+    m2 = re.findall(p, p1)
+    #print(m2)
+    for j in range(0, len(m2)):
+        g2 = m2[j]
+        p2 = p2 + g2[0] + "\n\t<td" + g2[1] + ">" + g2[2] + "</td>" + g2[3]
+        print(p2)
 
-    # p2: str = re.sub(r'<span(. *?)>(.* ?)</span>',"\n\t<td$1>$2</td>",p1)
-    print(p2)
+    ## p2: str = re.sub(r'<span(. *?)>(.* ?)</span>',"\n\t<td$1>$2</td>",p1)
+
+
+
     # \n < tr $1 >\n\t < td >$2$1 < / a > < / td >$3\n < / tr >\n
     # print(m[i])
 
