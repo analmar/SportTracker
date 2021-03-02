@@ -11,6 +11,7 @@ m = re.findall(p, c)
 
 print("...INI...")
 p2 = ""
+
 for i in range(0, len(m)):
     g = m[i]
     p1 = "\n<tr " + g[0] + ">\n\t" + "<td>" + g[1] + g[0] + "</a></td>" + "\n\t" + g[2] + "\n</tr>\n"
