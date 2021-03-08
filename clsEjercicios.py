@@ -1,11 +1,15 @@
 import re
 
+from meld.misc import select
+
+
 class Ejercicio:
     dato = ''   # el <tr> entero
     hashDato =''  #
     url = ''
     tipo =''  # bici,correr,...
     fecha=''  #guardado como ANYOMESDIA
+    fechaOr ='' # Feb 23, 2020
     duracion = 0   #1:02:12
     distancia = 0
     velMedia = 0
@@ -17,9 +21,9 @@ class Ejercicio:
     def __cmp__(self, other):
         #para hacerlo tengo que cambiar el formato de la fecha y de la duracion o
         # hacer algo para que sean comparables
-        if self.fecha == other.fecha:
+        if int(self.fecha) == int(other.fecha):
             return 1 if self.duracion > other.duracion else -1
-        elif self.fecha < other.fecha:
+        elif int(self.fecha) < int(other.fecha):
             return -1
         else:
             return 1
@@ -46,16 +50,31 @@ class Ejercicio:
         self.url = re.search(p,self.dato)[1]
 
     def _qTipo(self):
+        #<td class="activity-icon" >Bici</td>
         p='<td.*activity-icon.*?>(.*?)<\/td>'
         self.tipo = re.search(p,self.dato)[1]
 
     def _qDescripcion(self):
+        #<td class="description" title="">&nbsp;</td>
         p='<td.*description.*?>(.*?)<\/td>'
         self.url = re.search(p,self.dato)[1]
 
     def _qFecha(self):
-        p='<td.*date.*?>(.*?)<\/td>'
-        self.fecha = re.search(p,self.dato)[1]
+        # '<td class="date">Mar 3, 2021</td>'
+        meses = ['-', 'Jan', 'Feb', 'Mar', 'Apr','May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        #p='<td.*date.*?>(.*?)<\/td>'
+        p='<td.*date.*?>([a-zA-Z]{3}).*?([0-9]{1,2}). *?([0-9]{4})'
+        b = re.search(p,self.dato)
+
+        mes=meses.index(b[1])
+        dia=b[2]
+        if int(mes) < 10 : mes = "0" + str(mes)
+        if int(dia) < 10 : dia = "0" + str(dia)
+        self.fecha = str(b[3]) + str(mes) + str (dia)
+        self.fechaOr = b[1] + " " + str (dia) + ", " + b[3]
+        self.fecha = str(b[3]) + str(mes) + str(dia)
+        #self.fecha = re.search(p,self.dato)[1]
+
 
     def _qDuracion (self):
         p = '<td.*duration.*?>(.*?)<\/td>'

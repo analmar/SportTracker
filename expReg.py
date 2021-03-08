@@ -1,3 +1,4 @@
+from configparser import ConfigParser
 import clsEjercicios
 import re
 from mimetypes import init
@@ -9,11 +10,15 @@ from datetime import date
 from datetime import datetime
 
 from meld.misc import select
-
-global Ejercicios
+global fichEjercicios
+global EjerciciosNew
+global EjerciciosOld
 global initDir
+
+fichEjercicios = "Ejercicios.html"
 initDir = ""
-Ejercicios = []
+EjerciciosNew = []
+EjerciciosOld = []
 
 
 
@@ -71,35 +76,81 @@ def arreglarTagSpan(txtLin):
 
 
 def procesar(fichOr):
+    global EjerciciosOld
+    global EjerciciosNew
     fichDst = fichOr[:fichOr.rfind('.')] + datetime.now().strftime('%Y_%m_%d-%H%M%S') + ".html"
     Destino = open(fichDst, "w")
     Origen = Path(fichOr).read_text()
     Destino.write(cabeceraHtm())
+
         
     # c = open (os.getcwd()+"/datosOr/test2.txt","r")
     p = "<li.*?(activity-id-[0-9]{1,3}).*?>.*?(<a href.*?>)(.*?)<\/a><\/li>"
     m = re.findall(p, Origen)
+    if len(m) == 0 :
 
-    for i in range(0, len(m)):
-        g = m[i]
-        #p1 = "\n<tr " + g[0] + ">\n\t" + "<td>" + g[1] + g[0] + "</a></td>" + "\n\t" + g[2] + "\n</tr>\n"
-        p1 = "\n<tr>\n\t" + "<td>" + g[1] +  "ir</a></td>" + "\n\t" + g[2] + "\n</tr>"
-        p1 = arreglarTagSpan(p1)
-        print(p1)
-        Ejercicios.append(clsEjercicios.Ejercicio(p1))
-        Destino.write(p1)
+        # estamos tratando el fichero ya modificado para añadir solo los
+        #      ejercicios que no estan
+        #      (es lo que habra que hacer, 1º leer y luego añadir)
+        #      hacer:
+        #          Entramos en sportTracker
+        #            Seleccionamos lista (apareceran los ultimo)
+        #            guardamos como hmtl (por ejemplo : "hoy.html")
+        #          Iniciamos programa de Python y selecc. fichero "hoy.html"
+        #             Leemos nuestro html modificado ya (ejercicios.html)
+        #                y nos guardamos los datos en la var EjerciciosOld (array class)
+        #             Procesamos "hoy.html" que es el que acabamos de guardar de
+        #               SportTracker en ejerciciosNew
+        #             Creamos un ejercicios_tmp.html con los EjercicosNew
+        #                y que no estan en ejerciciosOld
+        #             Terminamos de completar "ejercicios_tmp.html" con
+        #                los ejerciciosOld
+        #             Finalizamos el ejercicios_tmp.html y lo renombramos
+        #                como Ejercicio.html.
 
-    l2 = sorted(Ejercicios)
+
+        p = "(<tr.*?\/tr>)"
+        mm = re.findall(p, Origen,re.MULTILINE | re.DOTALL)
+        for i in range(0, len(mm)):
+            p1 = mm[i]
+            if p1.find("<td") >=0:
+                EjerciciosOld.append(clsEjercicios.Ejercicio(p1))
+                Destino.write(p1)
+
+        txt = EjerciciosOld[0].tipo + ", " + EjerciciosOld[0].distancia + ", " + EjerciciosOld[0].duracion
+        msg.showinfo("¿?", "¿Has seleccionado un archivo ya Tratado? " \
+                     + "\n" + str(len(EjerciciosOld)) + " ejercicios encontrados"\
+                     + "\nel ultimo es : \n" + txt)
+        exit (89)
+    else:
+        # estamos tratando el fichero recien descargado de la web
+        for i in range(0, len(m)):
+            g = m[i]
+            #p1 = "\n<tr " + g[0] + ">\n\t" + "<td>" + g[1] + g[0] + "</a></td>" + "\n\t" + g[2] + "\n</tr>\n"
+            p1 = "\n<tr>\n\t" + "<td>" + g[1] +  "ir</a></td>" + "\n\t" + g[2] + "\n</tr>"
+            p1 = arreglarTagSpan(p1)
+            print(p1)
+            EjerciciosNew.append(clsEjercicios.Ejercicio(p1))
+            Destino.write(p1)
+
+
     Destino.write("\n</table>\n</Body>")
     Destino.write("\n</html>")
 
     print("...FIN...")
+    print("  probando Ordenar")
+    # l2 = sorted(Ejercicios)
     Destino.close()
     msg.showinfo("Terminado", "Creado Archivo nuevo en ...  \n " + fichDst)
 
 def abrir_archivo():
     global initDir
-    msg.showinfo("xxxxxxx","entrando A ELEGIR ARCHIVO")
+    parser = ConfigParser()
+    parser.read('sportTracker.ini')
+    if parser.has_option("DEFAULT","directorio"):
+        initDir = parser.get("DEFAULT","directorio")
+
+    ## msg.showinfo("xxxxxxx","entrando A ELEGIR ARCHIVO")
     archivo_abierto=filedialog.askopenfilename(initialdir=initDir,
         title="Selecciona Archivo",
         filetypes=( ("html","*.htm?"),("todas","*.*") ) )
@@ -107,6 +158,11 @@ def abrir_archivo():
         msg.showinfo("","No ha seleccionado ningun archivo")
     else:
         initDir=archivo_abierto[:archivo_abierto.rfind('/')]
+        import configparser
+        config = configparser.ConfigParser()
+        config["DEFAULT"] = {'directorio':initDir}
+        with open('sportTracker.ini', 'w') as configfile:
+            config.write(configfile)
         procesar(archivo_abierto)
 
 
@@ -132,10 +188,14 @@ if 3 == 1 :
 # from tkinter.filedialog import askopenfilename
 
 if initDir == "":
-    initDir = "/mnt"
+    initDir = "/mnt/u16-datos/python/proyectos/sportTracker/datosOr"
+
+
 
 ventana = Tk()
+ventana.title("Selecciona Fichero")
+
 Button(text="Seleccionar Archivo", bg="pale green", command=abrir_archivo).place(x=20, y=70)
-msg.showinfo(" _- A -_",initDir)
+#msg.showinfo(" _- A -_",initDir)
 ventana.mainloop()
 
