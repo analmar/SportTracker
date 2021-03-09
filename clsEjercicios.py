@@ -19,8 +19,6 @@ class Ejercicio:
     cadencia = 0
 
     def __cmp__(self, other):
-        #para hacerlo tengo que cambiar el formato de la fecha y de la duracion o
-        # hacer algo para que sean comparables
         if int(self.fecha) == int(other.fecha):
             return 1 if self.duracion > other.duracion else -1
         elif int(self.fecha) < int(other.fecha):
@@ -30,6 +28,13 @@ class Ejercicio:
 
     def toString(self):
         return self.tipo+"-"+self.fecha+"-"+self.duracion
+
+    def esIgual(self, other):
+        return (self.dato == other.dato) \
+               or (self.tipo == other.tipo
+                   and self.fecha == other.fecha
+                   and self.duracion == other.duracion
+                   and self.distancia == other.distancia)
 
     def __init__(self,tr):
         self.dato=tr

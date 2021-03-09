@@ -1,3 +1,4 @@
+from shutil import copyfile
 from configparser import ConfigParser
 import clsEjercicios
 import re
@@ -55,6 +56,11 @@ def cabeceraHtm():
     '\n</tr>'
     return txtRes
 
+def finHtm():
+    txtRes = "\n</table>\n</Body>"\
+             "\n</html>"
+    return txtRes
+
 def arreglarTagSpan(txtLin):
     txtLin = txtLin.replace("<span", "\n\t<td")
     txtLin = txtLin.replace("</span>", "</td>")
@@ -74,24 +80,53 @@ def arreglarTagSpan(txtLin):
     txtLin = re.sub(p, '>Fitness', txtLin)
     return txtLin
 
+def LeeEjerciosYaTratados(fichDst):
+    EjerciciosOld
+    try:
+        Destino = Path(fichDst).read_text()
+        p = "(<tr.*?\/tr>)"
+        mm = re.findall(p, Destino, re.MULTILINE | re.DOTALL)
+        for i in range(0, len(mm)):
+            p1 = mm[i]
+            if p1.find("<td") >= 0:
+                EjerciciosOld.append(clsEjercicios.Ejercicio(p1))
+    except IOError:
+       print ("Archivo {} no encontrado ", fichDst )
+    return EjerciciosOld
 
 def procesar(fichOr):
-    global EjerciciosOld
     global EjerciciosNew
-    fichDst = fichOr[:fichOr.rfind('.')] + datetime.now().strftime('%Y_%m_%d-%H%M%S') + ".html"
-    Destino = open(fichDst, "w")
-    Origen = Path(fichOr).read_text()
-    Destino.write(cabeceraHtm())
+    #fichDst = fichOr[:fichOr.rfind('.')] + datetime.now().strftime('%Y_%m_%d-%H%M%S') + ".html"
 
-        
-    # c = open (os.getcwd()+"/datosOr/test2.txt","r")
+    # nuevo fichero a tratar
+    Origen = Path(fichOr).read_text()
+
+    # ejercicios anteriores ya sacados
+    fichDst = fichOr[:fichOr.rfind('/')] + "/SportTracker.html"
+    EjerciciosOld2 = LeeEjerciosYaTratados(fichDst)
+
+    # ya tenemos los ejercicios anteriores nos cargamos el fichero antiguo , pero hacemos una copia ;-)
+    try:
+        copyfile(fichDst, fichDst + "_" + datetime.now().strftime('%Y_%m_%d-%H%M%S') + "_BAK.html")
+        print ("Copia de ficheros Tratado realizada ")
+    except IOError:
+        print(" NO existia fichero de Ejercicos tratados")
+
+    #analizamos el fichero (si cambiara la estructura habria que cambiar este patron
     p = "<li.*?(activity-id-[0-9]{1,3}).*?>.*?(<a href.*?>)(.*?)<\/a><\/li>"
     m = re.findall(p, Origen)
     if len(m) == 0 :
-
-        # estamos tratando el fichero ya modificado para añadir solo los
-        #      ejercicios que no estan
-        #      (es lo que habra que hacer, 1º leer y luego añadir)
+        # estamos abriendo un fichero ya modificado ¿que sentido tiene?
+        EjerciciosOld = LeeEjerciosYaTratados(fichOr)
+        txt = "No hay Ejercicios Antiguos actualmente "
+        if len(EjerciciosOld)>=0 :
+            txt = EjerciciosOld[0].tipo + ", " + EjerciciosOld[0].distancia + ", " + EjerciciosOld[0].duracion
+        msg.showinfo("¿?", "¿Has seleccionado un archivo ya Tratado? " \
+                     + "\n" + str(len(EjerciciosOld)) + " ejercicios encontrados"\
+                     + "\nel ultimo es : \n" + txt)
+        exit (89)
+    else:
+        # estamos tratando el fichero recien descargado de la web
         #      hacer:
         #          Entramos en sportTracker
         #            Seleccionamos lista (apareceran los ultimo)
@@ -108,39 +143,33 @@ def procesar(fichOr):
         #             Finalizamos el ejercicios_tmp.html y lo renombramos
         #                como Ejercicio.html.
 
-
-        p = "(<tr.*?\/tr>)"
-        mm = re.findall(p, Origen,re.MULTILINE | re.DOTALL)
-        for i in range(0, len(mm)):
-            p1 = mm[i]
-            if p1.find("<td") >=0:
-                EjerciciosOld.append(clsEjercicios.Ejercicio(p1))
-                Destino.write(p1)
-
-        txt = EjerciciosOld[0].tipo + ", " + EjerciciosOld[0].distancia + ", " + EjerciciosOld[0].duracion
-        msg.showinfo("¿?", "¿Has seleccionado un archivo ya Tratado? " \
-                     + "\n" + str(len(EjerciciosOld)) + " ejercicios encontrados"\
-                     + "\nel ultimo es : \n" + txt)
-        exit (89)
-    else:
-        # estamos tratando el fichero recien descargado de la web
         for i in range(0, len(m)):
             g = m[i]
             #p1 = "\n<tr " + g[0] + ">\n\t" + "<td>" + g[1] + g[0] + "</a></td>" + "\n\t" + g[2] + "\n</tr>\n"
             p1 = "\n<tr>\n\t" + "<td>" + g[1] +  "ir</a></td>" + "\n\t" + g[2] + "\n</tr>"
             p1 = arreglarTagSpan(p1)
-            print(p1)
-            EjerciciosNew.append(clsEjercicios.Ejercicio(p1))
-            Destino.write(p1)
+            ejercicioTemp = clsEjercicios.Ejercicio(p1)
+            if ( len(EjerciciosOld2) == 0 )\
+                    or\
+                    (len(EjerciciosOld2) >= 0 and not ejercicioTemp.esIgual(EjerciciosOld2[0])):
+                EjerciciosNew.append(ejercicioTemp) #clsEjercicios.Ejercicio(p1))
+            else:
+                break
 
-
-    Destino.write("\n</table>\n</Body>")
-    Destino.write("\n</html>")
+    #fimalmete grabamos los resultados
+    Destino = open(fichDst, "w")
+    Destino.write(cabeceraHtm())
+    for ejercicio in EjerciciosNew:
+        Destino.write(ejercicio.dato)
+    for ejercicio in EjerciciosOld2:
+        Destino.write(ejercicio.dato)
+    Destino.write(finHtm())
+    Destino.close()
 
     print("...FIN...")
     print("  probando Ordenar")
     # l2 = sorted(Ejercicios)
-    Destino.close()
+
     msg.showinfo("Terminado", "Creado Archivo nuevo en ...  \n " + fichDst)
 
 def abrir_archivo():
